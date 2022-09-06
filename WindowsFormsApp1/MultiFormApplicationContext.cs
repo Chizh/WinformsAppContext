@@ -15,12 +15,7 @@
             var form2 = new Form1();
             form2.Show();
 
-            form2.Closed += (sender, args) =>
-            {
-                this.ExitThread();
-            };
-
-            new Thread(() =>
+            var updateThread = new Thread(() =>
             {
                 while (true)
                 {
@@ -30,7 +25,24 @@
                     form1.UpdateText();
                     form2.UpdateText();
                 }
-            }).Start();
+            });
+            
+            form2.Closed += (sender, args) =>
+                OnCloseAnyForm(
+                    threadToAbort: updateThread);
+
+            form1.Closed += (sender, args) =>
+                OnCloseAnyForm(
+                    threadToAbort: updateThread);
+            
+            updateThread.Start();
+        }
+
+        private void OnCloseAnyForm(
+            Thread threadToAbort)
+        {
+            threadToAbort.Abort();
+            this.ExitThread();
         }
     }
 }
